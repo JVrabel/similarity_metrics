@@ -1,4 +1,5 @@
 from jax import jit
+import numpy as np
 
 @jit
 def mutual_info(x, y):
@@ -64,8 +65,10 @@ def phase_corr(x, y):
 def cosine(a, b):
     return 1 - jnp.dot(a, b) / jnp.linalg.norm(a) / jnp.linalg.norm(b)
 
+# def euclid(a, b):
+#     return jnp.linalg.norm(a - b)
 def euclid(a, b):
-    return jnp.linalg.norm(a - b)
+    return np.linalg.norm(a - b)
 
 def norm_mutual_info(x, y):
     return mutual_info(x,y)/((1/2)*(mutual_info(x,x)+mutual_info(y,y)))
