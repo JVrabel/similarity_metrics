@@ -2,4 +2,4 @@ node_modules/
 dist/
 .vscode/
 datasets/
-__pycache__/
+src/__pycache__/
