@@ -4,3 +4,4 @@ dist/
 datasets/
 src/__pycache__/
 __pycache__/
+*.ipynb_output
