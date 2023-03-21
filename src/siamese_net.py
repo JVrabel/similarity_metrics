@@ -10,7 +10,7 @@ class SiameseNetwork(nn.Module):
         self.relu1 = nn.ReLU()
         self.conv2 = nn.Conv1d(channels, channels, 10, stride=2, padding=1)
         self.relu2 = nn.ReLU()
-        self.fc1 = nn.Linear(1*25*50*400-750, 256) # flattened channels -> 10 (assumes input has dim 50)
+        self.fc1 = nn.Linear(383450, 256) # flattened channels -> 10 (assumes input has dim 50)
         self.relu3 = nn.ReLU()
         self.fc2 = nn.Linear(256, 10)
         
@@ -18,7 +18,7 @@ class SiameseNetwork(nn.Module):
         x = self.conv1(x)
         x = self.relu1(x)
         x = self.conv2(x)
-        # print(x.shape)
+        #print(x.shape)
         x = self.relu2(x)
         x = self.fc1(x.flatten(start_dim=1)) # flatten here
 
