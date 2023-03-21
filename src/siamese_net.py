@@ -47,6 +47,23 @@ def triplet_loss(anchor_embedding, positive_embedding, negative_embedding, margi
     return loss.mean()
 
 
+
+# Train the network
+def train(net, optimizer, criterion, train_loader, margin, epochs, batch_size):
+    for epoch in range(epochs):
+        running_loss = 0.0
+        for i, batch in enumerate(train_loader, 0):
+            anchor_batch, positive_batch, negative_batch = batch
+            # optimizer.zero_grad()
+            # anchor_embedding, positive_embedding, negative_embedding = net(anchor_batch, positive_batch, negative_batch)
+            # loss = criterion(anchor_embedding, positive_embedding, negative_embedding, margin)
+            # loss.backward()
+            # optimizer.step()
+            # running_loss += loss.item()
+        
+        print('Epoch %d, loss: %.3f' % (epoch+1, running_loss / len(train_loader)))
+
+
 # Prepare triplet data
 def prepare_triplets(data, labels):
     labels = np.array(labels)
@@ -76,18 +93,55 @@ def prepare_triplets(data, labels):
     
     return triplets
 
-# Train the network
-def train(net, optimizer, criterion, train_loader, margin, epochs, batch_size):
-    for epoch in range(epochs):
-        running_loss = 0.0
-        for i, batch in enumerate(train_loader, 0):
-            anchor_batch, positive_batch, negative_batch = batch
-            # optimizer.zero_grad()
-            # anchor_embedding, positive_embedding, negative_embedding = net(anchor_batch, positive_batch, negative_batch)
-            # loss = criterion(anchor_embedding, positive_embedding, negative_embedding, margin)
-            # loss.backward()
-            # optimizer.step()
-            # running_loss += loss.item()
-        
-        print('Epoch %d, loss: %.3f' % (epoch+1, running_loss / len(train_loader)))
+
+from collections import Counter
+import random
+
+# Prepare triplet data with balanced classes
+def prepare_balanced_triplets(data, labels):
+    """
+    data: numpy array of data samples
+    labels: numpy array of corresponding sample labels
+    """
+    
+    # Count number of samples for each class
+    label_count = dict(Counter(labels))
+    
+    # Find label indices for each element in data
+    label_to_indices = {}
+    for i, label in enumerate(labels):
+        if label not in label_to_indices:
+            label_to_indices[label] = []
+        label_to_indices[label].append(i)
+    
+    # Set threshold using maximum number of samples among all classes
+    max_sample_count = max(label_count.values())
+    threshold = int(max_sample_count * 0.8) # Consider samples up to 80% of max
+    
+    balanced_triplets = []
+    for i in range(len(data)):
+        anchor = data[i]
+        anchor_label = labels[i]
+
+        # Sample positive example from the same class
+        positive_index = random.choice(label_to_indices[anchor_label])
+        while positive_index == i:
+            positive_index = random.choice(label_to_indices[anchor_label])
+        positive = data[positive_index]
+
+        # Sample negative example
+        for _ in range(10): # attempt a few times to find a suitable negative example
+            random_label = random.choice(labels)
+            if label_count[random_label] < threshold: # undersampled class
+                random_index = random.choice(label_to_indices[random_label]) 
+            else: # oversampled class
+                random_index = random.choice([x for x in label_to_indices[random_label] if x != positive_index])                                      
+            negative = data[random_index]                               
+            if np.linalg.norm(anchor - negative) > np.linalg.norm(anchor - positive):
+                break
+
+        # Add triplet to list
+        balanced_triplets.append((anchor, positive, negative))
+
+    return balanced_triplets
 
