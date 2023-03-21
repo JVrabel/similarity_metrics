@@ -15,3 +15,4 @@ def relu(efficiency_fcn):
     """Applies the rectified linear unit (ReLU) function to the given efficiency function. t"""
     return np.maximum(0, efficiency_fcn)
 
+
