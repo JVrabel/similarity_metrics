@@ -97,26 +97,30 @@ def prepare_triplets(data, labels):
 from collections import Counter
 import random
 
-# Prepare triplet data with balanced classes
 def prepare_balanced_triplets(data, labels):
     """
     data: numpy array of data samples
     labels: numpy array of corresponding sample labels
     """
-    
+
     # Count number of samples for each class
     label_count = dict(Counter(labels))
-    
+
     # Find label indices for each element in data
-    label_to_indices = {}
+    label_to_indices = np.empty((len(np.unique(labels)), max(label_count.values())), dtype=int)
+    label_to_indices.fill(-1)
+
+    row_idx_map = {}
     for i, label in enumerate(labels):
-        if label not in label_to_indices:
-            label_to_indices[label] = []
-        label_to_indices[label].append(i)
+        if label not in row_idx_map:
+            row_idx_map[label] = 0
+        idx = row_idx_map[label]
+        label_to_indices[label][idx] = i
+        row_idx_map[label] += 1
     
     # Set threshold using maximum number of samples among all classes
     max_sample_count = max(label_count.values())
-    threshold = int(max_sample_count * 0.8) # Consider samples up to 80% of max
+    threshold = int(max_sample_count * 0.3) # Consider samples up to 80% of max
     
     balanced_triplets = []
     for i in range(len(data)):
@@ -124,18 +128,20 @@ def prepare_balanced_triplets(data, labels):
         anchor_label = labels[i]
 
         # Sample positive example from the same class
-        positive_index = random.choice(label_to_indices[anchor_label])
+        anchor_positive_indices = label_to_indices[anchor_label][:label_count[anchor_label]]
+        positive_index = np.random.choice(anchor_positive_indices)
         while positive_index == i:
-            positive_index = random.choice(label_to_indices[anchor_label])
+            positive_index = np.random.choice(anchor_positive_indices)
         positive = data[positive_index]
-
+        
         # Sample negative example
         for _ in range(10): # attempt a few times to find a suitable negative example
-            random_label = random.choice(labels)
+            random_label = np.random.choice(labels)
             if label_count[random_label] < threshold: # undersampled class
-                random_index = random.choice(label_to_indices[random_label]) 
+                random_index = label_to_indices[random_label][np.random.choice(label_count[random_label])] 
             else: # oversampled class
-                random_index = random.choice([x for x in label_to_indices[random_label] if x != positive_index])                                      
+                negative_indices = label_to_indices[random_label][label_to_indices[random_label] != positive_index]
+                random_index = np.random.choice(negative_indices)                                      
             negative = data[random_index]                               
             if np.linalg.norm(anchor - negative) > np.linalg.norm(anchor - positive):
                 break
@@ -144,4 +150,3 @@ def prepare_balanced_triplets(data, labels):
         balanced_triplets.append((anchor, positive, negative))
 
     return balanced_triplets
-
