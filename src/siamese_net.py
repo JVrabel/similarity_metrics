@@ -3,30 +3,75 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 
-class SiameseNetwork(nn.Module):
-    def __init__(self, output_size=10, channels=50):
-        super(SiameseNetwork, self).__init__()
-        self.conv1 = nn.Conv1d(1, channels, 50, stride=2, padding=1)
-        self.relu1 = nn.ReLU()
-        self.conv2 = nn.Conv1d(channels, channels, 10, stride=2, padding=1)
-        self.relu2 = nn.ReLU()
-        self.fc1 = nn.Linear(383450, 256) # flattened channels -> 10 (assumes input has dim 50)
-        self.relu3 = nn.ReLU()
-        self.fc2 = nn.Linear(256, 10)
+# class SiameseNetwork(nn.Module):
+#     def __init__(self, output_size=10, channels=50):
+#         super(SiameseNetwork, self).__init__()
+#         self.conv1 = nn.Conv1d(1, channels, 50, stride=2, padding=1)
+#         self.relu1 = nn.ReLU()
+#         self.conv2 = nn.Conv1d(channels, channels, 10, stride=2, padding=1)
+#         self.relu2 = nn.ReLU()
+#         self.fc1 = nn.Linear(383450, 256) # flattened channels -> 10 (assumes input has dim 50)
+#         self.relu3 = nn.ReLU()
+#         self.fc2 = nn.Linear(256, 10)
         
-    def forward_once(self, x):
-        x = self.conv1(x)
-        x = self.relu1(x)
-        x = self.conv2(x)
-        #print(x.shape)
-        x = self.relu2(x)
-        x = self.fc1(x.flatten(start_dim=1)) # flatten here
+#     def forward_once(self, x):
+#         x = self.conv1(x)
+#         x = self.relu1(x)
+#         x = self.conv2(x)
+#         #print(x.shape)
+#         x = self.relu2(x)
+#         x = self.fc1(x.flatten(start_dim=1)) # flatten here
 
-        x = self.relu3(x)
-        x = self.fc2(x)
+#         x = self.relu3(x)
+#         x = self.fc2(x)
         
+#         return x
+
+class SiameseNetwork(nn.Module):
+    def __init__(self, input_size, output_size=10, channels=50, kernel_sizes=[50, 10], strides=[2, 2], paddings=[1, 1], hidden_sizes=[256,128]):
+        super(SiameseNetwork, self).__init__()
+        self.conv_layers = nn.ModuleList()
+        self.relu_layers = nn.ModuleList() 
+        self.fc_layers = nn.ModuleList() 
+        self.relu_fc_layers = nn.ModuleList() 
+        in_channels = 1
+        for i in range(len(kernel_sizes)):
+            self.conv_layers.append(nn.Conv1d(in_channels, channels, kernel_sizes[i], stride=strides[i], padding=paddings[i]))
+            self.relu_layers.append(nn.ReLU())
+            in_channels = channels
+        # define the input size for the Linear layer by calculating the flattened output of convolution layers
+        flattened_size = self.calculate_flattened_size(input_size)
+        for i in range(len(hidden_sizes)):
+            if i == 0:
+                self.fc_layers.append(nn.Linear(flattened_size, hidden_sizes[i]))
+                self.relu_fc_layers.append(nn.ReLU())
+            elif i == (len(hidden_sizes)-1):
+                self.fc_layers.append(nn.Linear(hidden_sizes[i], output_size))
+            else:
+                self.fc_layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i+1]))
+                self.relu_fc_layers.append(nn.ReLU())
+            
+
+    def forward_once(self, x):
+        for conv_layer, relu_layer in zip(self.conv_layers, self.relu_layers):
+            x = conv_layer(x)
+            x = relu_layer(x)
+
+        x = x.flatten(start_dim=1)
+        for fc_layer, relu_fc_layer in zip(self.fc_layers, self.relu_fc_layers):
+            x = fc_layer(x)
+            x = relu_fc_layer(x)
         return x
-        
+
+    def calculate_flattened_size(self, input_size):
+          # use a random tensor to calculate the flattened size at runtime
+          with torch.no_grad():
+              x = torch.zeros(1, 1, input_size)
+              for conv_layer, relu_layer in zip(self.conv_layers, self.relu_layers):
+                  x = conv_layer(x)
+                  x = relu_layer(x)
+              return int(torch.prod(torch.tensor(x.size())))
+
     def forward(self, anchor, positive, negative):
         anchor_embedding = self.forward_once(anchor)
         positive_embedding = self.forward_once(positive)
@@ -39,6 +84,8 @@ class SiameseNetwork(nn.Module):
         emb2 = self.forward_once(x2)
         sim = torch.cdist(emb1, emb2, p=2)
         return sim
+
+
 
 def triplet_loss(anchor_embedding, positive_embedding, negative_embedding, margin): #not used in the end, there is an pytorch function for this
     distance_positive = torch.norm(anchor_embedding - positive_embedding, dim=1)
