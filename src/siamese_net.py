@@ -39,17 +39,15 @@ class SiameseNetwork(nn.Module):
             self.conv_layers.append(nn.Conv1d(in_channels, channels, kernel_sizes[i], stride=strides[i], padding=paddings[i]))
             self.relu_layers.append(nn.ReLU())
             in_channels = channels
-        # define the input size for the Linear layer by calculating the flattened output of convolution layers
-        flattened_size = self.calculate_flattened_size(input_size)
+        # define the input size for the Linear layer by calculating the flattened output of convolution layers 
         for i in range(len(hidden_sizes)):
             if i == 0:
-                self.fc_layers.append(nn.Linear(flattened_size, hidden_sizes[i]))
+                self.fc_layers.append(nn.Linear(self.calculate_flattened_size(input_size), hidden_sizes[i]))
                 self.relu_fc_layers.append(nn.ReLU())
-            elif i == (len(hidden_sizes)-1):
-                self.fc_layers.append(nn.Linear(hidden_sizes[i], output_size))
             else:
-                self.fc_layers.append(nn.Linear(hidden_sizes[i], hidden_sizes[i+1]))
+                self.fc_layers.append(nn.Linear(hidden_sizes[i-1], hidden_sizes[i]))
                 self.relu_fc_layers.append(nn.ReLU())
+        self.fc_layers.append(nn.Linear(hidden_sizes[-1], output_size))
             
 
     def forward_once(self, x):
@@ -58,10 +56,12 @@ class SiameseNetwork(nn.Module):
             x = relu_layer(x)
 
         x = x.flatten(start_dim=1)
-        for fc_layer, relu_fc_layer in zip(self.fc_layers, self.relu_fc_layers):
+        for fc_layer, relu_fc_layer in zip(self.fc_layers[:-1], self.relu_fc_layers):
             x = fc_layer(x)
             x = relu_fc_layer(x)
+        x = self.fc_layers[-1](x)
         return x
+        
 
     def calculate_flattened_size(self, input_size):
           # use a random tensor to calculate the flattened size at runtime
