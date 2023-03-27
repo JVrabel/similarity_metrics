@@ -116,7 +116,7 @@ def prepare_triplets(data, labels):
     labels = np.array(labels)
     data = np.array(data)
     triplets = []
-    label_to_indices = {}
+    label_to_indices = {} # a list of indices is provided for each label, ordering is from the most populated label to the smallest. Note that label_to_indices[i] gives all indices for the label 'i', NOT the i-th element!
     for i, label in enumerate(labels):
         if label not in label_to_indices:
             label_to_indices[label] = []
@@ -125,11 +125,14 @@ def prepare_triplets(data, labels):
     for i in range(len(data)):
         anchor = data[i]
         anchor_label = labels[i]
+
+        # choose positive sample from same class as anchor
         positive_index = i
         while positive_index == i:
             positive_index = label_to_indices[anchor_label][torch.randint(len(label_to_indices[anchor_label]), size=(1,)).item()]
         positive = data[positive_index]
         
+        # choose negative sample from a different class than anchor
         negative_label = anchor_label
         while negative_label == anchor_label:
             negative_label = labels[torch.randint(len(labels), size=(1,)).item()]
