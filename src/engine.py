@@ -42,7 +42,7 @@ def train_step(model: torch.nn.Module,
         input_n = inputs[2]
         
         # Compute the embeddings for the current batch
-        outputs = net(input_a, input_p, input_n)
+        outputs = model(input_a, input_p, input_n)
 
 
         # Split the embeddings into anchor, positive, and negative examples
@@ -103,7 +103,7 @@ def val_step(model: torch.nn.Module,
             input_p = inputs_val[1]
             input_n = inputs_val[2]
             # Compute the embeddings for the current batch
-            outputs = net(input_a, input_p, input_n)
+            outputs = model(input_a, input_p, input_n)
 
             # Split the embeddings into anchor, positive, and negative examples
             anchor = outputs[0]
