@@ -87,11 +87,11 @@ class SiameseNetwork(nn.Module):
 
 
 
-def triplet_loss(anchor_embedding, positive_embedding, negative_embedding, margin): #not used in the end, there is an pytorch function for this
-    distance_positive = torch.norm(anchor_embedding - positive_embedding, dim=1)
-    distance_negative = torch.norm(anchor_embedding - negative_embedding, dim=1)
-    loss = torch.relu(distance_positive - distance_negative + margin)
-    return loss.mean()
+# def triplet_loss(anchor_embedding, positive_embedding, negative_embedding, margin): #not used in the end, there is an pytorch function for this
+#     distance_positive = torch.norm(anchor_embedding - positive_embedding, dim=1)
+#     distance_negative = torch.norm(anchor_embedding - negative_embedding, dim=1)
+#     loss = torch.relu(distance_positive - distance_negative + margin)
+#     return loss.mean()
 
 
 
