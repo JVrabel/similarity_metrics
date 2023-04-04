@@ -7,7 +7,7 @@ from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 
 def train_step(model: torch.nn.Module, 
-               train_dataloader: torch.utils.data.DataLoader, 
+               dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
                optimizer: torch.optim.Optimizer,
                device: torch.device):
@@ -33,7 +33,7 @@ def train_step(model: torch.nn.Module,
     num_batches_train = 0
 
     # Iterate over the training data loader
-    for i, data in enumerate(train_dataloader, 0):
+    for i, data in enumerate(dataloader, 0):
         # Get the inputs and labels for the current batch
         inputs = [input.to(device) for input in data]
         
@@ -67,7 +67,7 @@ def train_step(model: torch.nn.Module,
     return epoch_loss_train
 
 def val_step(model: torch.nn.Module, 
-               val_dataloader: torch.utils.data.DataLoader, 
+               dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
                device: torch.device):
     """validates a PyTorch model for a single epoch.
@@ -94,7 +94,7 @@ def val_step(model: torch.nn.Module,
 
     # Turn on inference context manager
     with torch.no_grad():
-        for i, data in enumerate(val_dataloader, 0):
+        for i, data in enumerate(dataloader, 0):
             # Get the inputs and labels for the current batch
 
             inputs_val = [input.to(device) for input in data]
