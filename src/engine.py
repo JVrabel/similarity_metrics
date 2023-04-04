@@ -7,7 +7,7 @@ from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 
 def train_step(model: torch.nn.Module, 
-               dataloader: torch.utils.data.DataLoader, 
+               train_dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
                optimizer: torch.optim.Optimizer,
                device: torch.device):
@@ -33,7 +33,7 @@ def train_step(model: torch.nn.Module,
     num_batches_train = 0
 
     # Iterate over the training data loader
-    for i, data in enumerate(train_loader, 0):
+    for i, data in enumerate(train_dataloader, 0):
         # Get the inputs and labels for the current batch
         inputs = [input.to(device) for input in data]
         
@@ -67,7 +67,7 @@ def train_step(model: torch.nn.Module,
     return epoch_loss_train
 
 def val_step(model: torch.nn.Module, 
-               dataloader: torch.utils.data.DataLoader, 
+               val_dataloader: torch.utils.data.DataLoader, 
                loss_fn: torch.nn.Module, 
                device: torch.device):
     """validates a PyTorch model for a single epoch.
@@ -94,7 +94,7 @@ def val_step(model: torch.nn.Module,
 
     # Turn on inference context manager
     with torch.no_grad():
-        for i, data in enumerate(val_loader, 0):
+        for i, data in enumerate(val_dataloader, 0):
             # Get the inputs and labels for the current batch
 
             inputs_val = [input.to(device) for input in data]
@@ -123,7 +123,7 @@ def val_step(model: torch.nn.Module,
         
 def train(model: torch.nn.Module, 
           train_dataloader: torch.utils.data.DataLoader, 
-          test_dataloader: torch.utils.data.DataLoader, 
+          val_dataloader: torch.utils.data.DataLoader, 
           optimizer: torch.optim.Optimizer,
           loss_fn: torch.nn.Module,
           epochs: int,
@@ -156,17 +156,17 @@ def train(model: torch.nn.Module,
                   val_loss: [1.2641, 1.5706]} 
   """
   # Create empty results dictionary
-  results = {"train_loss": [], "test_loss": []}
+  results = {"train_loss": [], "val_loss": []}
 
-  # Loop through training and testing steps for a number of epochs
+  # Loop through training and validating steps for a number of epochs
   for epoch in tqdm(range(epochs)):
       train_loss = train_step(model=model,
                             dataloader=train_dataloader,
                             loss_fn=loss_fn,
                             optimizer=optimizer,
                             device=device)
-      test_loss = test_step(model=model,
-                            dataloader=test_dataloader,
+      val_loss = val_step(model=model,
+                            dataloader=val_dataloader,
                             loss_fn=loss_fn,
                             device=device)
 
@@ -174,12 +174,12 @@ def train(model: torch.nn.Module,
       print(
           f"Epoch: {epoch+1} | "
           f"train_loss: {train_loss:.4f} | "
-          f"test_loss: {test_loss:.4f} "
+          f"val_loss: {val_loss:.4f} "
       )
 
       # Update results dictionary
       results["train_loss"].append(train_loss)
-      results["test_loss"].append(test_loss)
+      results["val_loss"].append(val_loss)
 
   # Return the filled results at the end of the epochs
   return results
