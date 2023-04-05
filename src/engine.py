@@ -2,7 +2,7 @@
 Contains functions for training and validating a PyTorch model.
 """
 import torch
-
+import wandb
 from tqdm.auto import tqdm
 from typing import Dict, List, Tuple
 
@@ -158,6 +158,8 @@ def train(model: torch.nn.Module,
   # Create empty results dictionary
   results = {"train_loss": [], "val_loss": []}
 
+  wandb.init(project='siamese_net_contest', entity='jakubv')
+  wandb.watch(model)  
   # Loop through training and validating steps for a number of epochs
   for epoch in tqdm(range(epochs)):
       train_loss = train_step(model=model,
@@ -176,10 +178,14 @@ def train(model: torch.nn.Module,
           f"train_loss: {train_loss:.4f} | "
           f"val_loss: {val_loss:.4f} "
       )
-
+      wandb.log({
+        "epoch": epoch+1,
+        "training_loss": train_loss, 
+        "validation_loss": val_loss
+        })  
       # Update results dictionary
       results["train_loss"].append(train_loss)
       results["val_loss"].append(val_loss)
-
+  wandb.finish()  
   # Return the filled results at the end of the epochs
   return results
