@@ -27,18 +27,80 @@ import numpy as np
         
 #         return x
 
+
+#########################
+# class SiameseNetwork(nn.Module):
+#     def __init__(self, input_size, output_size=10, channels=50, kernel_sizes=[50, 10], strides=[2, 2], paddings=[1, 1], hidden_sizes=[256,128]):
+#         super(SiameseNetwork, self).__init__()
+#         self.conv_layers = nn.ModuleList()
+#         self.relu_layers = nn.ModuleList() 
+#         self.fc_layers = nn.ModuleList() 
+#         self.relu_fc_layers = nn.ModuleList() 
+#         in_channels = 1
+#         for i in range(len(kernel_sizes)):
+#             self.conv_layers.append(nn.Conv1d(in_channels, channels, kernel_sizes[i], stride=strides[i], padding=paddings[i]))
+#             self.relu_layers.append(nn.ReLU())
+#             in_channels = channels
+#         # define the input size for the Linear layer by calculating the flattened output of convolution layers 
+#         for i in range(len(hidden_sizes)):
+#             if i == 0:
+#                 self.fc_layers.append(nn.Linear(self.calculate_flattened_size(input_size), hidden_sizes[i]))
+#                 self.relu_fc_layers.append(nn.ReLU())
+#             else:
+#                 self.fc_layers.append(nn.Linear(hidden_sizes[i-1], hidden_sizes[i]))
+#                 self.relu_fc_layers.append(nn.ReLU())
+#         self.fc_layers.append(nn.Linear(hidden_sizes[-1], output_size))
+            
+
+#     def forward_once(self, x):
+#         for conv_layer, relu_layer in zip(self.conv_layers, self.relu_layers):
+#             x = conv_layer(x)
+#             x = relu_layer(x)
+
+#         x = x.flatten(start_dim=1)
+#         for fc_layer, relu_fc_layer in zip(self.fc_layers[:-1], self.relu_fc_layers):
+#             x = fc_layer(x)
+#             x = relu_fc_layer(x)
+#         x = self.fc_layers[-1](x)
+#         return x
+        
+
+#     def calculate_flattened_size(self, input_size):
+#           # use a random tensor to calculate the flattened size at runtime
+#           with torch.no_grad():
+#               x = torch.zeros(1, 1, input_size)
+#               for conv_layer, relu_layer in zip(self.conv_layers, self.relu_layers):
+#                   x = conv_layer(x)
+#                   x = relu_layer(x)
+#               return int(torch.prod(torch.tensor(x.size())))
+
+#     def forward(self, anchor, positive, negative):
+#         anchor_embedding = self.forward_once(anchor)
+#         positive_embedding = self.forward_once(positive)
+#         negative_embedding = self.forward_once(negative)
+#         return anchor_embedding, positive_embedding, negative_embedding
+#########################
+
+
 class SiameseNetwork(nn.Module):
     def __init__(self, input_size, output_size=10, channels=50, kernel_sizes=[50, 10], strides=[2, 2], paddings=[1, 1], hidden_sizes=[256,128]):
         super(SiameseNetwork, self).__init__()
         self.conv_layers = nn.ModuleList()
+        self.pool_layers = nn.ModuleList()
         self.relu_layers = nn.ModuleList() 
         self.fc_layers = nn.ModuleList() 
         self.relu_fc_layers = nn.ModuleList() 
         in_channels = 1
         for i in range(len(kernel_sizes)):
-            self.conv_layers.append(nn.Conv1d(in_channels, channels, kernel_sizes[i], stride=strides[i], padding=paddings[i]))
-            self.relu_layers.append(nn.ReLU())
-            in_channels = channels
+            if i == 0:
+                self.conv_layers.append(nn.Conv1d(in_channels, channels, kernel_sizes[i], stride=strides[i], padding=paddings[i]))
+                self.relu_layers.append(nn.ReLU())
+                self.pool_layers.append(nn.MaxPool1d(7, stride = 3))
+                in_channels = channels
+            else:
+                self.conv_layers.append(nn.Conv1d(in_channels, channels, kernel_sizes[i], stride=strides[i], padding=paddings[i]))
+                self.relu_layers.append(nn.ReLU())
+                in_channels = channels   
         # define the input size for the Linear layer by calculating the flattened output of convolution layers 
         for i in range(len(hidden_sizes)):
             if i == 0:

@@ -19,10 +19,11 @@ def create_dataloaders(
     train_dir: str, 
     #test_dir: str, 
     batch_size: int, 
+    device: torch.device,
     num_workers: int=NUM_WORKERS, 
-    split_rate: float=0.3,
-    random_st: int=42,
-    spectra_count: int=20
+    split_rate: float=0.6,
+    random_st: int=102,
+    spectra_count: int=100
     ):
     """Creates training and validation DataLoaders.
 
@@ -51,7 +52,7 @@ def create_dataloaders(
     X, y, samples = load_contest_train_dataset(train_dir, spectra_count)
     wavelengths = X.columns
 
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=split_rate, random_state=random_st, stratify=y, shuffle = True)
+    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=split_rate, random_state=random_st, stratify=samples, shuffle = True)
     del X, y, samples
 
     if True:
@@ -65,7 +66,7 @@ def create_dataloaders(
     y_train = torch.from_numpy(np.array(y_train)).long()
     y_val = torch.from_numpy(np.array(y_val)).long()
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    #device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # If available, move data to the GPU
     X_train.to(device)

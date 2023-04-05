@@ -10,28 +10,30 @@ import torch.nn as nn
 
 
 # Setup hyperparameters
-NUM_EPOCHS = 5
-BATCH_SIZE = 16
+NUM_EPOCHS = 50
+BATCH_SIZE = 128
 LEARNING_RATE = 0.0001
 INPUT_SIZE = 40000
 CHANNELS=50
 KERNEL_SIZES=[50, 10]
 STRIDES=[2, 2]
 PADDINGS=[1, 1]
-HIDDEN_SIZES=[256,128,64]
+HIDDEN_SIZES=[256]
 
 # Setup directories
 train_dir = "datasets/contest_TRAIN.h5"
 #test_dir = "datasets/test.h5"
 
 # Setup target device
-device = "cuda" if torch.cuda.is_available() else "cpu"
+#device = "cuda" if torch.cuda.is_available() else "cpu"
+device = torch.device("cpu")
 
 # Create DataLoaders with help from data_setup.py
 train_dataloader, val_dataloader, train_labels = data_setup.create_dataloaders(
     train_dir=train_dir,
     #test_dir=test_dir,
-    batch_size=BATCH_SIZE
+    batch_size=BATCH_SIZE,
+    device = device
 )
 
 # Create model with help from siamese_net.py
