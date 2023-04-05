@@ -51,7 +51,7 @@ def train_step(model: torch.nn.Module,
         negative = outputs[2]
         
         # Compute the triplet loss for the current batch
-        loss_train = criterion(anchor, positive, negative)
+        loss_train = loss_fn(anchor, positive, negative)
 
         # Backpropagate the loss and update the network parameters
         loss_train.backward()
@@ -111,7 +111,7 @@ def val_step(model: torch.nn.Module,
             negative = outputs[2]
 
             # Compute the triplet loss for the current batch
-            loss_val = criterion(anchor, positive, negative)
+            loss_val = loss_fn(anchor, positive, negative)
 
             # Update the running loss and number of batches for the validation dataset
             running_loss_val += loss_val.item()

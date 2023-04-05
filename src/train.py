@@ -11,8 +11,7 @@ import torch.nn as nn
 
 # Setup hyperparameters
 NUM_EPOCHS = 5
-BATCH_SIZE = 128
-HIDDEN_UNITS = 10
+BATCH_SIZE = 16
 LEARNING_RATE = 0.0001
 INPUT_SIZE = 40000
 CHANNELS=50
@@ -22,7 +21,7 @@ PADDINGS=[1, 1]
 HIDDEN_SIZES=[256,128,64]
 
 # Setup directories
-train_dir = "datasets/train.h5"
+train_dir = "datasets/contest_TRAIN.h5"
 #test_dir = "datasets/test.h5"
 
 # Setup target device
