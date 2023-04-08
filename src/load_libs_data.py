@@ -82,3 +82,19 @@ def load_contest_train_dataset(path_to_data, spectra_per_sample: int=50):
   samples = pd.Series(samples)
   classes = pd.Series(classes)
   return pd.DataFrame(spectra, columns=wavelengths), classes, samples
+
+
+
+
+def load_contest_test_dataset(path_to_data):
+  testFile = h5py.File(path_to_data,'r')
+  for chunk in list(testFile["UNKNOWN"].keys()):
+      tempData = np.array(testFile["UNKNOWN"][chunk])
+      if "testData" not in locals():
+          testData = tempData.transpose()
+      else:
+          testData = np.append(testData, tempData.transpose(), axis = 0)
+  testData = testData[:,:40000]
+  return pd.DataFrame(testData)
+
+
