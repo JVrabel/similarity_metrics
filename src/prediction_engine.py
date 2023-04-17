@@ -6,7 +6,7 @@ LIBS benchmark classification dataset.
 import os
 import torch
 from torch.utils.data import DataLoader
-from load_libs_data import load_contest_test_dataset
+from load_libs_data import load_contest_test_dataset, load_contest_train_dataset
 from sklearn.preprocessing import Normalizer, MinMaxScaler
 import numpy as np
 
@@ -16,6 +16,7 @@ def create_dataloaders(
     test_labels_dir: str, 
     batch_size: int, 
     device: torch.device,
+    pred_test: bool,
     ):
     """Creates training and validation DataLoaders.
 
@@ -39,9 +40,11 @@ def create_dataloaders(
                                 num_workers=4)
     """
 
-
-    X_test = load_contest_test_dataset(test_dir)
-    y_test = np.loadtxt(test_labels_dir, delimiter = ',')
+    if pred_test:
+        X_test = load_contest_test_dataset(test_dir)
+        y_test = np.loadtxt(test_labels_dir, delimiter = ',')
+    else: # use with caution, only for predicting training embeddings
+        X_test, y_test, _ = load_contest_train_dataset(test_dir)
 
     if True:
       scaler =  Normalizer(norm = 'max')

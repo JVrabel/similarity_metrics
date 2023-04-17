@@ -8,6 +8,7 @@ NUM_EPOCHS = 50
 BATCH_SIZE = 128
 LEARNING_RATE = 0.0001
 INPUT_SIZE = 40000
+OUTPUT_SIZE = 12
 CHANNELS=50
 KERNEL_SIZES=[50, 10]
 STRIDES=[2, 2]
@@ -15,9 +16,11 @@ PADDINGS=[1, 1]
 HIDDEN_SIZES=[256]
 
 # Setup directories
-test_dir = "datasets/contest_TEST.h5"
+#test_dir = "datasets/contest_TEST.h5"
 test_labels_dir = "datasets/test_labels.csv"
-model_dir = 'models/model_contest_100ep_maxpool.pth'
+model_dir = 'models/modularity_test1.pth'
+test_dir = "datasets/contest_TRAIN.h5"
+
 
 # Setup target device
 device = torch.device("cpu")
@@ -27,7 +30,8 @@ test_dataloader, y_test = prediction_engine.create_dataloaders(
     test_dir=test_dir,
     test_labels_dir=test_labels_dir,
     batch_size=BATCH_SIZE,
-    device = device
+    device = device,
+    pred_test = True # USE WITH CAUTION, turn to 'False' if you want to get embeddings of the training data
 )
 
 
@@ -36,7 +40,7 @@ saved_state_dict = torch.load(model_dir, map_location=torch.device('cpu'))
 # Create a new instance of your model
 model = siamese_net.SiameseNetwork(
     input_size=INPUT_SIZE, 
-    output_size=12, 
+    output_size=OUTPUT_SIZE, 
     channels=CHANNELS, 
     kernel_sizes=KERNEL_SIZES, 
     strides=STRIDES, 
@@ -53,12 +57,12 @@ prediction_X_test = prediction_engine.predict_test(
                     device=device,
                     test_dir=test_dir, 
                     test_labels_dir=test_labels_dir,
-                    model_dir=model_dir,
                     batch_size=BATCH_SIZE,
                     y_test=y_test
                     )
 
 
-np.save('datasets/prediction_X_test.npy', prediction_X_test)                  
+np.save('datasets/prediction_X_test2.npy', prediction_X_test)        
+np.save('datasets/y_test.npy', y_test)          
 
 #https://colab.research.google.com/drive/15D5vAYkhbAs5-txhYTCb_Fp2jiCnHXVN#scrollTo=82F_qINOBbkL
